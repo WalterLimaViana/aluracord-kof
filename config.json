@@ -1,5 +1,5 @@
 {
-    "name": "Aluracord - The King of Fighters (Walter)",
+    "name": "Aluracord - The King of Fighters",
     "theme": {
         "colors": {
             "primary": {
@@ -7,11 +7,11 @@
                 "100": "#C1EAC5",
                 "200": "#A3D9A5",
                 "300": "#7BC47F",
-                "400": "#57AE5B",
+                "400": "blue",
                 "500": "red",
-                "600": "#2F8132",
-                "700": "#207227",
-                "800": "#0E5814",
+                "600": "#FF4500",
+                "700": "blue",
+                "800": "blue",
                 "900": "#05400A"
             },
             "neutrals": {
