@@ -1,6 +1,16 @@
+//senha do supabase.io 
+//Testebackend2022
+
 import { Box, Text, TextField, Image, Button } from '@skynexui/components';
 import React from 'react';
 import appConfig from '../config.json';
+import { createClient } from '@supabase/supabase-js'
+
+//conexão com o supabase
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMzNDkzMiwiZXhwIjoxOTU4OTEwOTMyfQ.ocCfdJ76A_ZyYqL0fSgJhOfiMaJ_d-GuAo1tXCFqSEI';
+const SUPABASE_URL = 'https://dgvmyjzbpybcgbwljttm.supabase.co';
+const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
 
 export default function ChatPage() {
     //return (
@@ -9,6 +19,17 @@ export default function ChatPage() {
     const [mensagem, setMensagem] = React.useState('');
     // a variável listaDeMensagens tem a função da lista de mensagens enviadas
     const [listaDeMensagens, setListaDeMensagens] = React.useState([]);
+
+    // 
+    React.useEffect(() => {
+        supabaseClient.from('mensagens')
+            .select('*')
+            .order('id', { ascending: false })
+            .then(({ data }) => {
+                console.log('Dados da Consulta', data);
+                setListaDeMensagens(data);
+            });
+    }, []);
 
     /*
     // Usuário
@@ -30,11 +51,20 @@ export default function ChatPage() {
             texto: novaMensagem,
         };
 
-        setListaDeMensagens([
-            //ordem para ser exibida na tela
-            mensagem,
-            ...listaDeMensagens,
-        ]);
+        supabaseClient.from('mensagens')
+            .insert([
+                mensagem
+            ])
+            .then(({ data }) => {
+                // console.log('Criando mensagem', oQueTaVindoComoResposta);
+                setListaDeMensagens([
+                    //ordem para ser exibida na tela
+                    data[0],
+                    ...listaDeMensagens,
+                ]);
+            });
+
+
         setMensagem('');
     }
 
@@ -188,7 +218,7 @@ function MessageList(props) {
                                     display: 'inline-block',
                                     marginRight: '8px',
                                 }}
-                                src={`https://github.com/WalterLimaViana.png`}
+                                src={`https://github.com/${mensagem.de}.png`}
                             />
                             <Text tag="strong">
                                 {mensagem.de}
