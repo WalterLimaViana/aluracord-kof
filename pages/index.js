@@ -72,8 +72,8 @@ export default function PaginaInicial() {
                         // o submit utiliza-se o onSubmit
                         onSubmit={function (infosDoEvento) {
                             infosDoEvento.preventDefault();
-                            console.log('Alguém sfez o submit do form');
-                            roteamento.push('/chat');
+                            console.log('Alguém fez o submit do form');
+                            roteamento.push(`/chat?username=${username}`);
                             // Jeito tradicional para chamar outra página
                             // window.location.href = '/chat';
                         }}

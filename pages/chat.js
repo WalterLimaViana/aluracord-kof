@@ -4,31 +4,63 @@
 import { Box, Text, TextField, Image, Button } from '@skynexui/components';
 import React from 'react';
 import appConfig from '../config.json';
-import { createClient } from '@supabase/supabase-js'
+import { useRouter } from 'next/router';
+import { createClient } from '@supabase/supabase-js';
+import { ButtonSendSticker } from '../source/components/ButtonSendSticker';
 
 //conexão com o supabase
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMzNDkzMiwiZXhwIjoxOTU4OTEwOTMyfQ.ocCfdJ76A_ZyYqL0fSgJhOfiMaJ_d-GuAo1tXCFqSEI';
 const SUPABASE_URL = 'https://dgvmyjzbpybcgbwljttm.supabase.co';
 const supabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+function escutaMensagensEmTempoReal(adicionaMensagem) {
+    return supabaseClient
+        .from('mensagens')
+        .on('INSERT', (respostaLive) => {
+            adicionaMensagem(respostaLive.new);
+        })
+        .subscribe();
+}
+
 
 export default function ChatPage() {
     //return (
     //  <div>Página do Chat</div>
     //)
+    // Utilizar o reotemaneto para pegar as informações do usário na página index.js
+    const roteamento = useRouter();
+    //a variável usuáriologado pega a váriavel username que aparece na url com o seu valor 
+    const usuarioLogado = roteamento.query.username;
     const [mensagem, setMensagem] = React.useState('');
     // a variável listaDeMensagens tem a função da lista de mensagens enviadas
     const [listaDeMensagens, setListaDeMensagens] = React.useState([]);
 
     // 
     React.useEffect(() => {
-        supabaseClient.from('mensagens')
+        supabaseClient
+            .from('mensagens')
             .select('*')
             .order('id', { ascending: false })
             .then(({ data }) => {
-                console.log('Dados da Consulta', data);
+                // console.log('Dados da Consulta', data);
                 setListaDeMensagens(data);
             });
+
+        const subscription = escutaMensagensEmTempoReal((novaMensagem) => {
+            console.log('Nova Mensagem', novaMensagem);
+            console.log('listaDeMensagens:', listaDeMensagens);
+            setListaDeMensagens((valorAtualDaLista) => {
+                console.log('valorAtualDaLista:', valorAtualDaLista);
+                return [
+                    novaMensagem,
+                    ...valorAtualDaLista,
+                ]
+            });
+        });
+
+        return () => {
+            subscription.unsubscribe();
+        }
     }, []);
 
     /*
@@ -46,22 +78,19 @@ export default function ChatPage() {
         // a váriavel mensagem se torna um objeto com a id, o usário que esta enviando e o texto, para evitar que
         // erros no console
         const mensagem = {
-            id: listaDeMensagens.length + 1,
-            de: 'WalterLimaViana',
+            //id: listaDeMensagens.length + 1,
+            de: usuarioLogado,
             texto: novaMensagem,
         };
 
-        supabaseClient.from('mensagens')
+        supabaseClient
+            .from('mensagens')
             .insert([
                 mensagem
             ])
             .then(({ data }) => {
-                // console.log('Criando mensagem', oQueTaVindoComoResposta);
-                setListaDeMensagens([
-                    //ordem para ser exibida na tela
-                    data[0],
-                    ...listaDeMensagens,
-                ]);
+                console.log('Criando mensagem', data);
+
             });
 
 
@@ -152,6 +181,13 @@ export default function ChatPage() {
                                 color: appConfig.theme.colors.neutrals[200],
                             }}
                         />
+                        {/*Callback */}
+                        <ButtonSendSticker
+                            onStickerClick={(sticker) => {
+                                // console.log('USANDO O COMPONENTE] Salva esse sticker no banco', sticker);
+                                handleNovaMensagem(':sticker:' + sticker);
+                            }}
+                        />
                     </Box>
                 </Box>
             </Box>
@@ -178,7 +214,7 @@ function Header() {
 }
 // as props organizam as formas de como será exibidas na tela
 function MessageList(props) {
-    console.log(props);
+    // console.log(props);
     return (
         <Box
             tag="ul"
@@ -234,7 +270,14 @@ function MessageList(props) {
                                 {(new Date().toLocaleDateString())}
                             </Text>
                         </Box>
-                        {mensagem.texto}
+                        {/*Condicional: {mensagem.texto.startsWith(':sticker:').toString()}*/}
+                        {mensagem.texto.startsWith(':sticker:')
+                            ? (
+                                <Image src={mensagem.texto.replace(':sticker:', '')} />
+                            ) : (
+                                mensagem.texto
+                            )}
+                        {/*mensagem.texto*/}
                     </Text>
                 );
             })}
